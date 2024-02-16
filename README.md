@@ -17,9 +17,8 @@ Once you have installed X-Cart v4, follow these simple steps:
 ## Updating settings
 
 Under the payment method settings, you can:
- * Update the payment method text in the payment gateways list
+ * Update the payment title that shows up in the checkout  
  * Update the payment method description in the payment gateways list
- * Update the title that shows up in the payment popup 
  * Add app & public keys
  * Change the capture type (Auth only/Auth and capture)
  
