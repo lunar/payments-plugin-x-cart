@@ -1,14 +1,14 @@
-INSTALLATION INSTRUCTIONS:
+## INSTALLATION INSTRUCTIONS:
 
-I.
-Upload files from the 'files_to_upload' folder to the X-cart store directory.
+### I. 
+Upload files from the `files_to_upload` folder to the X-cart root directory.
  
 
-II.
-Apply SQL patch from the 'lunar_sql.sql' file.
+### II.
+Apply SQL patch from the `lunar_sql.sql` file to the store database.
 
 
-III.
+### III.
 Modify the following files:
 
 1. `admin/order.php`
@@ -17,9 +17,9 @@ Find the following line: `if ($mode == 'status_change') {`
 
 Add before:
 ```php
-// Lunar: start
+/** Lunar: start */
 require $xcart_dir . '/include/lunar_order.php';
-// Lunar: end
+/** Lunar: end */
 ```
 
 
@@ -36,13 +36,14 @@ Add before:
 {* Lunar: end *}
 ```
 
-IV.
+### IV.
 Clear X-Cart cache.
 
-    You can do it here: `YOUR_XCART_STORE_URL/admin/tools.php#cleartmp`
+    You can do it here: YOUR_XCART_STORE_URL/admin/tools.php#cleartmp
 
  
-V. Now you can enable the 'Lunar' payment gateway.
+### V.
+Now you can enable the 'Lunar' payment gateway.
 
     1)
     Open the following page in the X-cart admin area:
