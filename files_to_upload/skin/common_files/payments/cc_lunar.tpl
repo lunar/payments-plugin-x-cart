@@ -66,6 +66,22 @@
       </td>
     </tr>
 
+    <tr>
+      <td>{$lng.lbl_lunar_currency}:</td>
+      <td>
+        <select name="param09">
+          {if $currencies}
+            {foreach item=currency from=$currencies}
+              <option value="{$currency.code}" {if $module_data.param09 eq $currency.code } selected="selected" {/if}>
+                {$currency.code}
+              </option>
+            {/foreach}
+          {/if}
+        </select>
+        (The currency used when the customer pay for an order)
+      </td>
+    </tr>
+
   </table>
   <br /><br />
   <input type="submit" value="{$lng.lbl_update|strip_tags:false|escape}" />
