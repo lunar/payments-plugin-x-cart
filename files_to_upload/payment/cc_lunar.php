@@ -5,19 +5,30 @@
  * @subpackage Payment interface
  */
 
-//  $payment_method_processor = 'cc_lunar.php';
+$lunar_method_processor = 'cc_lunar.php';
 
 if (!class_exists('\\Lunar\\Lunar')) {
     require __DIR__.'/cc_lunar_api/vendor/autoload.php';
 }
 
-$lunar_test_mode = !!$_COOKIE['lunar_testmode'];
-
-$api_client = new \Lunar\Lunar($module_params['param01'], null, $lunar_test_mode);
-
+/**
+ * REDIRECT
+ */
 if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
 
+    $api_client = new \Lunar\Lunar($module_params['param01'], null, !!$_COOKIE['lunar_testmode']);
+    
     $currencyCode = 'USD';
+    $order_id = $orderids[0];
+
+    $products = [];
+    foreach($cart['products'] as $p) {
+        $products[] = [
+            'ID' => $p['productcode'],
+            'Name' => $p['product'],
+            'Quantity'  => $p['amount'],
+        ];
+    }
 
     $lunar_args = [
         'integration' => [
@@ -27,25 +38,26 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
         ],
         'amount' => [
             'currency' => $currencyCode,
-            'decimal' => (string) 53.97,
+            'decimal' => (string) $cart['total_cost'],
         ],
         'custom' => [
-            'orderId' => '',
-            'products' => [],
+            'orderId' => $order_id,
+            'products' => $products,
             'customer' => [
                 'name' => '',
                 'email' => '',
                 'phoneNo' => '',
                 'address' => '',
-                'ip' => '',
+                'ip' => func_get_valid_ip($_SERVER["REMOTE_ADDR"]),
             ],
             'platform' => [
                 'name' => 'X-Cart',
-                'version' => '',
+                'version' => $version,
             ],
             'lunarPluginVersion' => '1.0.0',
         ],
-        'redirectUrl' => 'http://'.$xcart_https_host.'/payment/cc_lunar.php?lunar_method=card'.'&order_id='.'100',
+        'redirectUrl' => $xcart_catalogs['customer'].'/payment/'.$lunar_method_processor
+                            .'?lunar_method=card'.'&orderids='.$order_id,
         'preferredPaymentMethod' => 'card',
     ];
 
@@ -56,65 +68,82 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
         ];
     }
 
-    if ($lunar_test_mode) {
+    $redirect_url = 'https://pay.lunar.money/?id=';
+    if (!!$_COOKIE['lunar_testmode']) {
+        $redirect_url = 'https://hosted-checkout-git-develop-lunar-app.vercel.app/?id='; 
         $lunar_args['test'] = func_lunar_get_test_object($currencyCode);
     }
 
     try {
         $payment_intent_id = $api_client->payments()->create($lunar_args);
-        setCookie('_lunar_intent_id', $payment_intent_id);
+        x_session_register('_lunar_intent_id', $payment_intent_id);
     } catch(\Lunar\Exception\ApiException $e) {
-        trigger_error($e->getMessage());
+        $error_message = $e->getMessage();
+        func_lunar_debug_log($error_message);
     }
 
-    if (!empty($payment_intent_id)) {
-        trigger_error('error_create_intent');
+    if (empty($payment_intent_id)) {
+        $error_message = 'There was an error creating payment intent';
+        func_lunar_debug_log($error_message);
     }
 
-    $redirect_url = 'https://pay.lunar.money/?id='.$payment_intent_id;
-    if ($lunar_test_mode) {
-        $redirect_url = 'https://hosted-checkout-git-develop-lunar-app.vercel.app/?id='.$payment_intent_id;  
+    if (!empty($error_message)) {
+        $top_message = ['type' => 'E'];
+        $top_message['content'] = $error_message;
+        func_header_location($xcart_catalogs['customer'] . '/cart.php?mode=checkout');
     }
 
-    func_header_location($redirect_url);
+    func_header_location($redirect_url.$payment_intent_id);
 
+/**
+ * RETURN
+ */
+} elseif ($_SERVER['REQUEST_METHOD'] == 'GET' && !empty($_GET['lunar_method'])) {
+    
+    require __DIR__.'/auth.php';
 
-} elseif ( $_SERVER['REQUEST_METHOD'] == 'GET' && !empty($_GET['lunar_method'])) {
-   
-    x_load('payment', 'http');
- 
-    $module_params = func_get_pm_params('cc_lunar.php');
+    if (empty($lunar_method_processor)) {
+        $lunar_method_processor = basename($_SERVER['SCRIPT_FILENAME']);
+    }
 
-    $lunar_log = '';
+    if (!func_is_active_payment($lunar_method_processor)) {
+        exit;
+    }
+
+    $module_params = func_get_pm_params($lunar_method_processor);
+
+    $api_client = new \Lunar\Lunar($module_params['param01'], null, !!$_COOKIE['lunar_testmode']);
+
     $lunar_error = '';
 
-    $lunar_txnid = 'd5ba1c37-ca97-5b23-ba00-2665e148d73d';
+    $lunar_txnid = x_session_get_var('_lunar_intent_id');
 
     if (!empty($lunar_txnid)) {
         try {
             $trans_data = $api_client->payments()->fetch($lunar_txnid);
         } catch (\Lunar\Exception\ApiException $e) {
             $exception_raised = $e->getMessage();
+            func_lunar_debug_log($exception_raised);
         }
     } else {
         $lunar_error = 'No transaction ID provided';
     }
 
     if (empty($trans_data)) {
-        $lunar_log = 'Something went wrong. Unable to fetch transaction.';
-        $lunar_error = 'error_invalid_transaction_data';
+        $lunar_error = 'Something went wrong. Unable to fetch transaction.';
     }
 
     if (!empty($exception_raised)) {
-        $lunar_log .= ' Exception message: '.$exception_raised;
+        $lunar_error .= ' Exception message: '.$exception_raised;
     }
 
     $order_captured = false;
 
-    if (!$lunar_log && !empty($trans_data['authorisationCreated'])) {
+    if (!$lunar_error && !empty($trans_data['authorisationCreated'])) {
 
         if ($module_params['use_preauth'] == 'Y') {
-            $lunar_log = 'Transaction authorized.';
+            $lunar_error = 'Transaction authorized.';
+
         } else {
             try {
                 $capture_response = $api_client->payments()->capture($lunar_txnid, [
@@ -132,16 +161,19 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
                 $order_captured = true;
             } else {
                 $declined_reason = isset($capture_response['declinedReason']) ? $capture_response['declinedReason']['error'] : '';
-                $lunar_log ='Unable to capture. '.$declined_reason;
+                $lunar_log = 'Unable to capture. '.$declined_reason;
             }
 
             if (!empty($exception_raised)) {
                 $lunar_log .= ' Exception raised: '.$exception_raised;
             }
+
+            if (!empty($lunar_log)) {
+                func_lunar_debug_log($lunar_log);
+            }
         }
     } else {
-        $lunar_log = 'Transaction error. Empty transaction results.';
-        $lunar_error = 'error_invalid_transaction_data';
+        $lunar_error = 'Transaction error. Empty transaction results.';
     }
 
     $extra_order_data = [];
@@ -149,11 +181,14 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
 
     if ($lunar_error){
         $bill_output['code'] = 2;
-        $bill_output['billmes'] = "Failed. " . $lunar_log . " Lunar Transaction: " . $lunar_txnid;
+        $bill_output['billmes'] = "Failed. " . $lunar_error . " Lunar Transaction: " . $lunar_txnid;
         $extra_order_data['capture_status'] = 'F';
+
+        $top_message = ['type' => 'E', 'content' => $bill_output['billmes']];
+        func_header_location($xcart_catalogs['customer'] . '/cart.php?mode=checkout');
     } else {
         $bill_output['code'] = 1;
-        $bill_output['billmes'] = $lunar_log . " Lunar Transaction: " . $lunar_txnid;
+        $bill_output['billmes'] = "Lunar Transaction: " . $lunar_txnid;
 
         if ($order_captured){
             $extra_order_data['capture_status'] = 'C';
@@ -162,9 +197,20 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
             $extra_order_data['capture_status'] = 'A';
         }
     }
+
+    $orderids = [filter_var($_GET['orderids'], FILTER_VALIDATE_INT)];
+
+    if ($orderids) {
+        require $xcart_dir . '/payment/payment_ccend.php';
+    } else {
+        $top_message = ['type' => 'E', 'content' => 'Incorrect or no order id provided'];
+        func_header_location($xcart_catalogs['customer'] . '/cart.php?mode=checkout');
+    }
 }
 
-
+/**
+ * 
+ */
 function func_lunar_get_test_object($currency = 'DKK')
 {
     return [
@@ -190,4 +236,12 @@ function func_lunar_get_test_object($currency = 'DKK')
             "status"      => "authenticated"
         ],
     ];
+}
+
+/**
+ * 
+ */
+function func_lunar_debug_log($log_msg)
+{
+    x_log_add('payment', $log_msg);
 }
