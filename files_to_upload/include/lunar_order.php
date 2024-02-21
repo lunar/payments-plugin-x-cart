@@ -7,8 +7,8 @@
  */
 
 if (!defined('XCART_SESSION_START')) {
-    header("Location: ../");
-    die("Access denied");
+    header('Location: ../');
+    die('Access denied');
 }
 
 $exception_raised = '';
@@ -23,7 +23,7 @@ if (
     && !empty($order['extra']['lunar_txnid']) && in_array($order['status'], ['A', 'P'])
 ) {
     if (!class_exists('\\Lunar\\Lunar')) {
-        require __DIR__ . '/cc_lunar_api/vendor/autoload.php';
+        require dirname(__DIR__) . '/payment/cc_lunar_api/vendor/autoload.php';
     }
 
     $module_params = func_query_first("SELECT param01, param02 FROM $sql_tbl[ccprocessors] WHERE paymentid='$order[paymentid]'");
@@ -64,78 +64,84 @@ if (
 
             $smarty->assign('show_lunar_buttons', $show_lunar_buttons);
         } else {
-            // in_[$mode, ['lunar_capture', 'lunar_void', 'lunar_refund')
-
-            if ($mode == "lunar_capture") {
-                $status = "P";
-                $mode = process_lunar_transaction($api_client, $order, 'capture');
+            if ($mode == 'lunar_capture') {
+                $status = 'P';
+                $mode = process_lunar_transaction($api_client, $order, $trans_data, 'capture');
             }
 
-            if ($mode == "lunar_refund") {
-                $status = "R";
-                $mode = process_lunar_transaction($api_client, $order, 'refund');
+            if ($mode == 'lunar_refund') {
+                $status = 'R';
+                $mode = process_lunar_transaction($api_client, $order, $trans_data, 'refund');
             }
 
-            if ($mode == "lunar_void") {
-                $status = "D";
-                $mode = process_lunar_transaction($api_client, $order, 'cancel');
+            if ($mode == 'lunar_void') {
+                $status = 'D';
+                $mode = process_lunar_transaction($api_client, $order, $trans_data, 'cancel');
             }
 
-            if ($mode == "status_change") {
+            if ($mode == 'status_change') {
                 func_change_order_status($orderid, $status);
 
                 // must be called after FUnC_change_order_status
                 XCOrderTracking::sendNotification();
 
                 $top_message = [
+                    'type' => 'S',
                     'content' => func_get_langvar_by_name('txt_order_has_been_changed')
                 ];
+            } else {
+                $lunar_error = $mode;
             }
-
-
         }
-    } else {
-        $error_message = '';
+    }
+    
+    if (!empty($exception_raised)) {
+        $error_message = $exception_raised;
+    }
+    
+    if (!empty($lunar_error)) {
+        $error_message = $lunar_error;
+    }
 
-        if (!empty($exception_raised)) {
-            $error_message = $exception_raised;
-        }
-        
-        if (!empty($lunar_error)) {
-            $error_message = $lunar_error;
-        }
+    if (!empty($error_message)) {
+        $top_message = [
+            'type' => 'E',
+            'content' => $error_message
+        ];
 
-        if ($error_message) {
-            $top_message = [
-                'content' => $error_message
-            ];
-
-            func_header_location("order.php?orderid=" . $orderid);
-        }
-
+        func_header_location("order.php?orderid=" . $orderid);
     }
 }
 
 /**
  * helper function (DRY)
  */
-function process_lunar_transaction($api_client, $order, $action_type)
+function process_lunar_transaction($api_client, $order, $trans_data, $action_type)
 {
-    $lunar_data = [
+    $order_data = [
         'amount' => [
             'currency' => $order['extra']['lunar_currency'],
             'decimal' => (string) $order['total'],
+            // 'currency' => $trans_data['amount']['currency'],
+            // 'decimal' => $trans_data['amount']['decimal'],
         ]
     ];
+ 
+    if (
+        ($trans_data['amount']['currency'] != $order_data['amount']['currency'])
+        || ($trans_data['amount']['decimal'] != $order_data['amount']['decimal'])
+    ) {
+        return 'Order amount or currency mismatch transaction data';
+    }
 
     try {
-        $api_response = $api_client->payments()->capture($order['extra']['lunar_txnid'], $lunar_data);
+        $api_response = $api_client->payments()->{$action_type}($order['extra']['lunar_txnid'], $order_data);
     } catch (\Lunar\Exception\ApiException $e) {
         $exception_raised = $e->getMessage();
     }
 
     if (!empty($api_response["{$action_type}State"]) && 'completed' == $api_response["{$action_type}State"]) {
-        return "status_change";
+        return 'status_change';
     }
     
     $mode = '';
@@ -144,7 +150,7 @@ function process_lunar_transaction($api_client, $order, $action_type)
     } elseif (!empty($api_response['declinedReason'])) {
         $mode = $api_response['declinedReason']['error'];
     } else {
-        $mode = "lunar_mode_error";
+        $mode = 'Unknown error';
     }
 
     return $mode;
