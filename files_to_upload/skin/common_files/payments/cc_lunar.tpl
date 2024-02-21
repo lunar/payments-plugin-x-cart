@@ -15,22 +15,38 @@
 
     <tr>
       <td>{$lng.lbl_lunar_app_key}:</td>
-      <td><input type="text" name="param01" size="36" value="{$module_data.param01|escape}" /></td>
+      <td><input type="text" name="param01" size="70" value="{$module_data.param01|escape}" /></td>
     </tr>
 
     <tr>
       <td>{$lng.lbl_lunar_public_key}:</td>
-      <td><input type="text" name="param02" size="36" value="{$module_data.param02|escape}" /></td>
+      <td><input type="text" name="param02" size="70" value="{$module_data.param02|escape}" /></td>
     </tr>
 
     <tr>
-      <td class="setting-name">{$lng.lbl_use_preauth_method}:</td>
+      <td>{$lng.lbl_lunar_logo_url}:</td>
+      <td><input type="text" name="param03" size="70" value="{$module_data.param03|escape}" /></td>
+    </tr>
+
+    {if $paymentMethodCode == 'lunar_mobilepay'}
+    <tr>
+      <td>{$lng.lbl_lunar_configuration_id}:</td>
+      <td><input type="text" name="param04" size="70" value="{$module_data.param04|escape}" /></td>
+    </tr>
+    {/if}
+
+    <tr>
+      <td>{$lng.lbl_lunar_checkout_mode_label}</td>
       <td>
         <select name="use_preauth">
-          <option value="">{$lng.lbl_auth_and_capture_method}</option>
-          <option value="Y" {if $module_data.use_preauth eq 'Y' } selected="selected" {/if}>{$lng.lbl_auth_method}
+          <option value="Y" {if $module_data.use_preauth eq 'Y' } selected="selected" {/if}>
+            {$lng.lbl_auth_method}
+          </option>
+          <option value="">
+            {$lng.lbl_auth_and_capture_method}
           </option>
         </select>
+        ({$lng.lbl_use_preauth_method})
       </td>
     </tr>
 
