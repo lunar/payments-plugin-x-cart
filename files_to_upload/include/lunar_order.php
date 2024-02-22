@@ -93,8 +93,8 @@ if (
                 XCOrderTracking::sendNotification();
 
                 $top_message = [
-                    'type' => 'S',
-                    'content' => func_get_langvar_by_name('txt_order_has_been_changed')
+                    'type' => 'I',
+                    'content' => func_get_langvar_by_name('txt_order_has_been_changed'),
                 ];
             } else {
                 $lunar_error = $mode;
