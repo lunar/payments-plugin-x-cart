@@ -104,6 +104,13 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
     
     require __DIR__.'/auth.php';
 
+    $orderids = [filter_var($_GET['orderids'], FILTER_VALIDATE_INT)];
+
+    if (empty($orderids)) {
+        $top_message = ['type' => 'E', 'content' => 'Incorrect or no order id provided'];
+        func_header_location($xcart_catalogs['customer'] . '/cart.php?mode=checkout');
+    }
+
     if (empty($lunar_method_processor)) {
         $lunar_method_processor = basename($_SERVER['SCRIPT_FILENAME']);
     }
@@ -201,14 +208,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
         }
     }
 
-    $orderids = [filter_var($_GET['orderids'], FILTER_VALIDATE_INT)];
-
-    if ($orderids) {
-        require $xcart_dir . '/payment/payment_ccend.php';
-    } else {
-        $top_message = ['type' => 'E', 'content' => 'Incorrect or no order id provided'];
-        func_header_location($xcart_catalogs['customer'] . '/cart.php?mode=checkout');
-    }
+    require $xcart_dir . '/payment/payment_ccend.php';
 }
 
  /**
