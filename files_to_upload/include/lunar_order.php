@@ -20,7 +20,8 @@ if (!empty($order['paymentid'])) {
 
 if (
     !empty($payment_cc_processor) && $payment_cc_processor == 'cc_lunar.php'
-    && !empty($order['extra']['lunar_txnid']) && in_array($order['status'], ['A', 'P'])
+    && !empty($order['extra']['lunar_txnid']) && !empty($order['extra']['lunar_currency'])
+    && in_array($order['status'], ['A', 'P'])
 ) {
     if (!class_exists('\\Lunar\\Lunar')) {
         require dirname(__DIR__) . '/payment/cc_lunar_api/vendor/autoload.php';
@@ -126,7 +127,7 @@ function process_lunar_transaction($api_client, $order, $trans_data, $action_typ
             // 'decimal' => $trans_data['amount']['decimal'],
         ]
     ];
- 
+
     if (
         ($trans_data['amount']['currency'] != $order_data['amount']['currency'])
         || ($trans_data['amount']['decimal'] != $order_data['amount']['decimal'])
