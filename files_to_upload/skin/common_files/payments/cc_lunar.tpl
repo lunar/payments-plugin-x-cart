@@ -42,7 +42,7 @@
           <option value="Y" {if $module_data.use_preauth eq 'Y' } selected="selected" {/if}>
             {$lng.lbl_auth_method}
           </option>
-          <option value="">
+          <option value="" {if $module_data.use_preauth eq '' } selected="selected" {/if}>
             {$lng.lbl_auth_and_capture_method}
           </option>
         </select>
