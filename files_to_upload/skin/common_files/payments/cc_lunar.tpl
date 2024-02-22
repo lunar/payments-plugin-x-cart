@@ -26,10 +26,44 @@
       <td><input type="text" name="param03" size="70" required value="{$module_data.param03|escape}" /></td>
     </tr>
 
-    {if $paymentMethodCode == 'lunar_mobilepay'}
+    {if $module_data.param08 == 'mobilePay'}
+      <tr>
+        <td>{$lng.lbl_lunar_configuration_id}:</td>
+        <td><input type="text" name="param04" size="70" required value="{$module_data.param04|escape}" /></td>
+      </tr>
+
+      <tr>
+        <td>{$lng.lbl_lunar_payment_title}:</td>
+        <td>
+          <input type="text" name="param06" disabled size="40" value="{$lng.lbl_lunar_mobilepay_title_text}" />
+          <label>{$lng.lbl_lunar_mobilepay_title_link|substitute:"shop_language":$shop_language}</label>
+        </td>
+      </tr>
+
+      <tr>
+        <td>{$lng.lbl_lunar_payment_description}:</td>
+        <td>
+          <input type="text" name="param07" disabled size="40" value="{$lng.lbl_lunar_mobilepay_description_text}" />
+          <label>{$lng.lbl_lunar_mobilepay_description_link|substitute:"shop_language":$shop_language}</label>
+        </td>
+      </tr>
+
+    {else}
+
     <tr>
-      <td>{$lng.lbl_lunar_configuration_id}:</td>
-      <td><input type="text" name="param04" size="70" required value="{$module_data.param04|escape}" /></td>
+      <td>{$lng.lbl_lunar_payment_title}:</td>
+      <td>
+        <input type="text" name="param06" disabled size="40" value="{$lng.lbl_lunar_card_title_text}" />
+        <label>{$lng.lbl_lunar_card_title_link|substitute:"shop_language":$shop_language}</label>
+      </td>
+    </tr>
+
+    <tr>
+      <td>{$lng.lbl_lunar_payment_description}:</td>
+      <td>
+        <input type="text" name="param07" disabled size="40" value="{$lng.lbl_lunar_card_description_text}" />
+        <label>{$lng.lbl_lunar_card_description_link|substitute:"shop_language":$shop_language}</label>
+      </td>
     </tr>
     {/if}
 
@@ -45,22 +79,6 @@
           </option>
         </select>
         ({$lng.lbl_use_preauth_method})
-      </td>
-    </tr>
-
-    <tr>
-      <td>{$lng.lbl_lunar_payment_title}:</td>
-      <td>
-        {$lng.lbl_lunar_PaymentInfoTitle|substitute:"shop_language":$shop_language}
-        {* <input type="text" name="param06" size="36" value="{$module_data.param06|escape|replace:" \\":""}" /> *}
-      </td>
-    </tr>
-
-    <tr>
-      <td>{$lng.lbl_lunar_payment_description}:</td>
-      <td>
-        {$lng.lbl_lunar_PaymentInfoDescription|substitute:"shop_language":$shop_language}
-        {* <input type="text" name="param07" size="72" value="{$module_data.param07|escape|replace:" \\":""}" /> *}
       </td>
     </tr>
 
