@@ -15,23 +15,23 @@
 
     <tr>
       <td>{$lng.lbl_lunar_app_key}:</td>
-      <td><input type="text" name="param01" size="70" value="{$module_data.param01|escape}" /></td>
+      <td><input type="text" name="param01" size="70" required value="{$module_data.param01|escape}" /></td>
     </tr>
 
     <tr>
       <td>{$lng.lbl_lunar_public_key}:</td>
-      <td><input type="text" name="param02" size="70" value="{$module_data.param02|escape}" /></td>
+      <td><input type="text" name="param02" size="70" required value="{$module_data.param02|escape}" /></td>
     </tr>
 
     <tr>
       <td>{$lng.lbl_lunar_logo_url}:</td>
-      <td><input type="text" name="param03" size="70" value="{$module_data.param03|escape}" /></td>
+      <td><input type="text" name="param03" size="70" required value="{$module_data.param03|escape}" /></td>
     </tr>
 
     {if $paymentMethodCode == 'lunar_mobilepay'}
     <tr>
       <td>{$lng.lbl_lunar_configuration_id}:</td>
-      <td><input type="text" name="param04" size="70" value="{$module_data.param04|escape}" /></td>
+      <td><input type="text" name="param04" size="70" required value="{$module_data.param04|escape}" /></td>
     </tr>
     {/if}
 
