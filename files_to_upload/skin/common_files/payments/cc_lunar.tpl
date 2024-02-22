@@ -4,8 +4,6 @@
 {$lng.txt_cc_configure_top_text}
 
 <br />
-{* <br /><input type="button" name="lunar_signup" value="{$lng.lbl_register}"
-  onclick="javascript: window.open('https://lunar.app/personal');" /><br /> *}
 <br />
 
 {capture name=dialog}
