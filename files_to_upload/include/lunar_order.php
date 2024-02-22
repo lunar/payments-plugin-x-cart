@@ -66,24 +66,30 @@ if (
             $smarty->assign('show_lunar_buttons', $show_lunar_buttons);
         } else {
             if ($mode == 'lunar_capture') {
+                $adv_info_text = 'CAPTURED amount: ';
                 $status = 'P';
                 $mode = process_lunar_transaction($api_client, $order, $trans_data, 'capture');
             }
 
             if ($mode == 'lunar_refund') {
+                $adv_info_text = 'REFUNDED amount: ';
                 $status = 'R';
                 $mode = process_lunar_transaction($api_client, $order, $trans_data, 'refund');
             }
 
             if ($mode == 'lunar_void') {
+                $adv_info_text = 'CANCELLED amount: ';
                 $status = 'D';
                 $mode = process_lunar_transaction($api_client, $order, $trans_data, 'cancel');
             }
 
             if ($mode == 'status_change') {
-                func_change_order_status($orderid, $status);
+                $price = $trans_data['amount']['decimal'].' '.$trans_data['amount']['currency'];
+                func_change_order_status($orderid, $status, 
+                    $adv_info_text . ' ' .$price. ' Lunar Transaction ID: ' . $trans_data['id']
+                );
 
-                // must be called after FUnC_change_order_status
+                // must be called after func_change_order_status
                 XCOrderTracking::sendNotification();
 
                 $top_message = [
@@ -123,8 +129,6 @@ function process_lunar_transaction($api_client, $order, $trans_data, $action_typ
         'amount' => [
             'currency' => $order['extra']['lunar_currency'],
             'decimal' => (string) $order['total'],
-            // 'currency' => $trans_data['amount']['currency'],
-            // 'decimal' => $trans_data['amount']['decimal'],
         ]
     ];
 

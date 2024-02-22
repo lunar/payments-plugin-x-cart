@@ -92,6 +92,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
     if (!empty($error_message)) {
         $top_message = ['type' => 'E'];
         $top_message['content'] = $error_message;
+        x_session_unregister('_lunar_intent_id');
         func_header_location($xcart_catalogs['customer'] . '/cart.php?mode=checkout');
     }
 
@@ -155,7 +156,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
 
         } else {
             try {
-                $capture_response = $api_client->payments()->capture($lunar_txnid, [
+                $api_response = $api_client->payments()->capture($lunar_txnid, [
                     'amount' => [
                         'currency' => $trans_data['amount']['currency'],
                         'decimal' => (string) $trans_data['amount']['decimal'],
@@ -165,11 +166,11 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
                 $exception_raised = $e->getMessage();
             }
 
-            if (!empty($capture_response['captureState']) && 'completed' == $capture_response['captureState']) {
-                $lunar_log = 'Transaction finished. Captured.';
+            if (!empty($api_response['captureState']) && 'completed' == $api_response['captureState']) {
+                $lunar_log = 'CAPTURED amount '.$api_response['amount']['decimal'].' '.$api_response['amount']['currency'];
                 $order_captured = true;
             } else {
-                $declined_reason = isset($capture_response['declinedReason']) ? $capture_response['declinedReason']['error'] : '';
+                $declined_reason = isset($api_response['declinedReason']) ? $api_response['declinedReason']['error'] : '';
                 $lunar_log = 'Unable to capture. '.$declined_reason;
             }
 
@@ -191,14 +192,17 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
 
     if ($lunar_error){
         $bill_output['code'] = 2;
-        $bill_output['billmes'] = "Failed. " . $lunar_error . " Lunar Transaction: " . $lunar_txnid;
+        $bill_output['billmes'] = 'Failed. ' . $lunar_error . ' Lunar Transaction ID: ' . $lunar_txnid;
         $extra_order_data['capture_status'] = 'F';
 
         $top_message = ['type' => 'E', 'content' => $bill_output['billmes']];
+
+        x_session_unregister('_lunar_intent_id');
+
         func_header_location($xcart_catalogs['customer'] . '/cart.php?mode=checkout');
     } else {
         $bill_output['code'] = 1;
-        $bill_output['billmes'] = $lunar_log . " Lunar Transaction: " . $lunar_txnid;
+        $bill_output['billmes'] = $lunar_log . ' Lunar Transaction ID: ' . $lunar_txnid;
 
         if ($order_captured){
             $extra_order_data['capture_status'] = 'C';
@@ -207,6 +211,8 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
             $extra_order_data['capture_status'] = 'A';
         }
     }
+
+    x_session_unregister('_lunar_intent_id');
 
     require $xcart_dir . '/payment/payment_ccend.php';
 }
