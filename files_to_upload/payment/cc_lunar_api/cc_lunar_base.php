@@ -5,10 +5,8 @@
  * @subpackage Payment interface
  */
 
-$lunar_method_processor = 'cc_lunar.php';
-
 if (!class_exists('\\Lunar\\Lunar')) {
-    require __DIR__.'/cc_lunar_api/vendor/autoload.php';
+    require dirname(__DIR__).'/cc_lunar_api/vendor/autoload.php';
 }
 
 /**
@@ -58,9 +56,9 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
             ],
             'lunarPluginVersion' => '1.0.0',
         ],
-        'redirectUrl' => $xcart_catalogs['customer'].'/payment/'.$lunar_method_processor
-                            .'?lunar_method=card'.'&orderids='.$order_id,
-        'preferredPaymentMethod' => 'card',
+        'redirectUrl' => $xcart_catalogs['customer'].'/payment/'.$module_params['processor']
+                            .'?lunar_method='.$module_params['param08'].'&orderids='.$order_id,
+        'preferredPaymentMethod' => $module_params['param08'],
     ];
 
     if ($module_params['param04']) {
@@ -103,7 +101,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
  */
 } elseif ($_SERVER['REQUEST_METHOD'] == 'GET' && !empty($_GET['lunar_method'])) {
     
-    require __DIR__.'/auth.php';
+    require dirname(__DIR__).'/auth.php';
 
     $orderids = [filter_var($_GET['orderids'], FILTER_VALIDATE_INT)];
 
@@ -112,15 +110,15 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
         func_header_location($xcart_catalogs['customer'] . '/cart.php?mode=checkout');
     }
 
-    if (empty($lunar_method_processor)) {
-        $lunar_method_processor = basename($_SERVER['SCRIPT_FILENAME']);
-    }
+    // if (empty($lunar_method_processor)) {
+    //     $lunar_method_processor = basename($_SERVER['SCRIPT_FILENAME']);
+    // }
 
-    if (!func_is_active_payment($lunar_method_processor)) {
+    if (!func_is_active_payment(basename($_SERVER['SCRIPT_FILENAME']))) {
         exit;
     }
 
-    $module_params = func_get_pm_params($lunar_method_processor);
+    $module_params = func_get_pm_params(basename($_SERVER['SCRIPT_FILENAME']));
 
     $api_client = new \Lunar\Lunar($module_params['param01'], null, !!$_COOKIE['lunar_testmode']);
 
@@ -214,7 +212,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' && defined('XCART_START')) {
 
     x_session_unregister('_lunar_intent_id');
 
-    require $xcart_dir . '/payment/payment_ccend.php';
+    require dirname(__DIR__).'/payment_ccend.php';
 }
 
  /**

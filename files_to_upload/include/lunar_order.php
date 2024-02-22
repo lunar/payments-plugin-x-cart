@@ -19,7 +19,7 @@ if (!empty($order['paymentid'])) {
 }
 
 if (
-    !empty($payment_cc_processor) && $payment_cc_processor == 'cc_lunar.php'
+    !empty($payment_cc_processor) && strstr($payment_cc_processor, 'cc_lunar')
     && !empty($order['extra']['lunar_txnid']) && !empty($order['extra']['lunar_currency'])
     && in_array($order['status'], ['A', 'P'])
 ) {
