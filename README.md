@@ -10,16 +10,15 @@ Once you have installed X-Cart v4, follow these simple steps:
   1. Signup at [lunar.app](https://lunar.app) (it’s free)  
   1. Create an account
   1. Create an app key for your website
-  1. Follow the instructions in the install.txt file
+  1. Follow the instructions in the [install.md](/install.md) file
   1. Insert the app key and your public key in the settings for the payment gateway you just created
   
 
 ## Updating settings
 
 Under the payment method settings, you can:
- * Update the payment method text in the payment gateways list
+ * Update the payment title that shows up in the checkout  
  * Update the payment method description in the payment gateways list
- * Update the title that shows up in the payment popup 
  * Add app & public keys
  * Change the capture type (Auth only/Auth and capture)
  
