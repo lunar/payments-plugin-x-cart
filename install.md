@@ -5,7 +5,7 @@ Upload files from the `files_to_upload` folder to the X-cart root directory.
  
 
 ### II.
-Apply SQL patch from the `lunar_sql.sql` file to the store database.
+Apply SQL patch from the `lunar_db_migration.sql` file to the store database.
 
 
 ### III.
@@ -43,34 +43,34 @@ Clear X-Cart cache.
 
  
 ### V.
-Now you can enable the 'Lunar' payment gateway.
+Now you can add and enable a Lunar payment gateway.
 
     1)
     Open the following page in the X-cart admin area:
     Top menu 'Settings' tab -> 'Payment methods' page -> 'Payment gateways' tab.
 
     2)
-    Select the 'Lunar' in the 'Payment gateways' selectbox and click the 'Add' button.
+    Select a Lunar method in the 'Payment gateways' dropdown field and click the 'Add' button.
 
     3)
-    Find your newly added 'Lunar' payment gateway in the 'Payment methods' tab.
+    Find your newly added Lunar payment gateway in the 'Payment methods' tab.
     (It should be at the bottom of page before the 'Apply changes' button.)
 
     4)
-    Check the checkbox near the 'Lunar' payment gateway and click the 'Apply changes' button.
+    Check the checkbox near the payment gateway name and click the 'Apply changes' button.
 
     5)
-    Click to the 'Configure' link near the 'Credit Card processor: Lunar' sentence.
+    Click to the 'Configure' link near the 'Credit Card processor:' sentence.
 
     6)
-    In the opened 'Lunar' page configure your payment processing gateway and click the 'Update' button.
+    In the opened page configure your payment processing gateway and click the 'Update' button.
 
         Note:
         To capture the authorized amount or void the transaction, login to the Lunar payment gateway backoffice and go to the edit order screen. 
         Scroll down to the customer notes, and bellow them you will find buttons to capture/decline the payment
 
     7)
-    Place a test order and go to the admin area and find your placed test order there.
+    Place an order and go to the admin area and find your placed order there.
     On the 'Order details' page you need to find the '+ Payment gateway log' link. It is under the 'Customer notes' and 'Status' fields.
     Click to this '+ Payment gateway log' link and you will see your order 'Transaction ID' there.
 
