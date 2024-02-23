@@ -28,6 +28,6 @@ Under the payment method settings, you can:
  * In Auth and Capture mode, the orders are captured automatically
  * In Auth only mode you can capture an order On the edit screen. You will find a capture button bellow the customer notes
  2. Refund
-   * You can refund an order On the edit screen. You will find a Decline button bellow the customer notes
+   * You can refund an order On the edit screen. You will find a Refund button bellow the customer notes
  3. Void
-   * You can void an order On the edit screen. You will find a Decline button bellow the customer notes. The void only applies if the order was not captured. Otherwise it will initiate a refund. 
+   * You can void an order On the edit screen. You will find a Decline button bellow the customer notes. The void only applies if the order was not captured.
